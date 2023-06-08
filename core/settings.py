@@ -3,7 +3,7 @@ import os
 import environ
 
 env = environ.Env()
-environ.ENV.read_env()
+environ.Env.read_env()
 
 ENVIRONMENT = env
 
@@ -13,19 +13,19 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 SITE_NAME = 'Portillo'
 DEBUG = True
 
-if DEBUG:
-    ALLOWED_HOSTS = [
-        "localhost",
-        "127.0.0.1"
-]
-else:
-    ALLOWED_HOSTS = [
-        "portillo.pe",
-        ".portillo.pe",
-        "www.portillo.pe"
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1"
 ]
 
-RENDER_EXTERNAL_HOSTNAME = os.eviron.get('RENDER_EXTERNAL_HOSTNAME')
+if not DEBUG:
+    ALLOWED_HOSTS = [
+        "solopython.com",
+        ".solopython.com",
+        "www.solopython.com"
+    ]
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
@@ -55,12 +55,12 @@ THIRD_PARTY_APPS = [
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
 CKEDITOR_CONFIGS = {
-    'default ': {
-        'toolbar ': 'full',
+    'default': {
+        'toolbar': 'full',
         'autoParagraph': False
     }
 }
-CKEDITOR_UPLOUD_PATH = "/media/"
+CKEDITOR_UPLOAD_PATH = "/media/"
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddele'
@@ -104,7 +104,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-DATABASES["defalut"]["ATOMIC_REQUESTS"] = True
+DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
@@ -116,12 +116,19 @@ CSRF_TRUSTED_ORIGIN = [
     'http://localhost:8000'
 ]
 
+if not DEBUG:
+    CORS_ORIGIN_WHITELIST = []
+
+    CSRF_TRUSTED_ORIGINS = []
+
+
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
-    "django.contrib.auth.hashers.BCcryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
 ]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -158,9 +165,41 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'build/static')
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny'
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 16,
+}
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+FILE_UPLOAD_PERMISSIONS = 0o640
+
+EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'
+
+if not DEBUG:
+    DEFAULT_FROM_EMAIL="Uridium <mail@uridium.network>"
+    EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = env('EMAIL_HOST')
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+    EMAIL_PORT = env('EMAIL_PORT')
+    EMAIL_USE_TLS = env('EMAIL_USE_TLS')
